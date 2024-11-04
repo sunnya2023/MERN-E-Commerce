@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
+import ProductModel from "../models/productModel.js";
 // add product
 export const addProduct = async (req, res) => {
   try {
@@ -9,8 +10,8 @@ export const addProduct = async (req, res) => {
       originalPrice,
       category,
       subCategory,
-      size,
-      color,
+      sizes,
+      colors,
       bestseller,
     } = req.body;
 
@@ -45,9 +46,25 @@ export const addProduct = async (req, res) => {
         return result.secure_url;
       })
     );
-    console.log("이미지 주소:", imagesUrl);
+    // console.log("이미지 주소:", imagesUrl);
 
-    res.status(200).json({});
+    const productData = {
+      name,
+      description,
+      price,
+      originalPrice,
+      category,
+      subCategory,
+      sizes: JSON.parse(sizes),
+      colors: JSON.parse(colors),
+      bestseller: bestseller === "true" ? true : false,
+      images: imagesUrl,
+    };
+    console.log(productData);
+
+    const newProduct = new ProductModel(productData);
+    await newProduct.save();
+    res.status(200).json({ success: true, message: "Product Added" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: error.message });
@@ -55,7 +72,16 @@ export const addProduct = async (req, res) => {
 };
 
 // list product
-export const listProduct = async (req, res) => {};
+export const listProduct = async (req, res) => {
+  try {
+    const products = await ProductModel.find({});
+
+    res.status(200).json({ seccess: "true", products });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // remove product
 export const removeProduct = async (req, res) => {};
