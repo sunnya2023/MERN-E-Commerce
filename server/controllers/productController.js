@@ -35,12 +35,16 @@ export const addProduct = async (req, res) => {
     //   bestseller
     // );
     // console.log("이미지 주소:", image1, image2, image3, image4);
-    // console.log(images);
+    console.log(images);
 
     //cloudinary에 업로드
     let imagesUrl = await Promise.all(
       images.map(async (item) => {
         let result = await cloudinary.uploader.upload(item.path, {
+          public_id: `E-commerce/${item.filename
+            .split(".")
+            .slice(0, -1)
+            .join("")}_${new Date().getTime()}`,
           resource_type: "image",
         });
         return result.secure_url;
@@ -84,7 +88,39 @@ export const listProduct = async (req, res) => {
 };
 
 // remove product
-export const removeProduct = async (req, res) => {};
+export const removeProduct = async (req, res) => {
+  try {
+    // await ProductModel.findOneAndDelete(req.body.id);
+    //res.json({ success: true, message: "Product Removed" });
+
+    const product = await ProductModel.findById(req.params.id);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+    if (product.images && product.images.length > 0) {
+      await Promise.all(
+        product.images.map(async (imgUrl) => {
+          // URL에서 public_id 추출
+          const publicId = imgUrl
+            .split("/")
+            .slice(-2)
+            .join("/")
+            .replace(/\.(png|jpg|jpeg|gif)$/, "");
+          // console.log(`public_id: ${publicId}`);
+          await cloudinary.uploader.destroy(publicId);
+        })
+      );
+    }
+
+    await ProductModel.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: "Product Removed" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // single proudct info
 export const singleProduct = async (req, res) => {};

@@ -20,7 +20,8 @@ router.post(
   addProduct
 );
 router.get("/list", listProduct);
-router.post("/remove", removeProduct);
+// router.post("/remove", removeProduct);
+router.delete("/:id", removeProduct);
 router.post("/single", singleProduct);
 
 export default router;
