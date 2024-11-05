@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import ProductModel from "../models/productModel.js";
+import mongoose from "mongoose";
 // add product
 export const addProduct = async (req, res) => {
   try {
@@ -123,4 +124,15 @@ export const removeProduct = async (req, res) => {
 };
 
 // single proudct info
-export const singleProduct = async (req, res) => {};
+export const singleProduct = async (req, res) => {
+  try {
+    const { productId } = req.body;
+    console.log(productId);
+    const product = await ProductModel.findById(productId);
+
+    res.status(200).json({ success: true, product });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
